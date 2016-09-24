@@ -14,10 +14,10 @@ class ChatProtocol(LineReceiver):
         self.state = "REGISTER"
 
     def connectionMade(self):
-        banner = colored.blue("""
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        ####### Successfully Connected to the Chat Server #######
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        banner = ("""
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        #### Successfully Connected to the Chat Server ####
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         """)
         
         self.sendLine(banner)
@@ -41,9 +41,9 @@ class ChatProtocol(LineReceiver):
            self.sendLine("Sorry, that name is taken. Choose a different name.")
            return
        
-       welcomeMsg = colored.green('Welcome to the chat, %s.' % (name,))
-       otherUsers = colored.blue('Participants in chat: %s ' % (", ".join(self.factory.users)))
-       joinedMsg = colored.cyan('%s has joined the chanel.' % (name,))
+       welcomeMsg = ('Welcome to the chat, %s.' % (name,))
+       otherUsers = ('Participants in chat: %s ' % (", ".join(self.factory.users)))
+       joinedMsg = colored.green('%s has joined the chanel.' % (name,))
        
        self.sendLine(welcomeMsg)
        self.broadcastMessage(joinedMsg)
@@ -58,6 +58,8 @@ class ChatProtocol(LineReceiver):
        self.broadcastMessage(colored.magenta(message))
        self.updateSessionInfo(message)
 
+    # change this to write out chat log for last 100 messages
+    # with timestamp, while refreshing the current users in chat
     def broadcastMessage(self, message):
        for name, protocol in self.factory.users.iteritems():
            if protocol != self:
