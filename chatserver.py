@@ -2,6 +2,10 @@ from twisted.internet.protocol import Factory
 from twisted.protocols.basic import LineReceiver
 from twisted.internet import reactor
 from clint.textui import colored
+import sys
+
+port = 8000
+
 
 class ChatProtocol(LineReceiver):
     def __init__(self, factory):
@@ -17,14 +21,15 @@ class ChatProtocol(LineReceiver):
         """)
         
         self.sendLine(banner)
-        self.sendLine("Choose a name for this session:")
+        self.sendLine("Choose a username:")
 
     def connectionLost(self, reason):
         leftMsg = colored.red('%s has left the channel.' % (self.name,))
         if self.name in self.factory.users:
             del self.factory.users[self.name]
             self.broadcastMessage(leftMsg)
-
+        self.updateSessionInfo(leftMsg)
+ 
     def lineReceived(self, line):
         if self.state == "REGISTER":
             self.handle_REGISTER(line)
@@ -46,16 +51,23 @@ class ChatProtocol(LineReceiver):
        self.name = name
        self.factory.users[name] = self
        self.state = "CHAT"
+       self.updateSessionInfo(name + ' registered.')
 
     def handle_CHAT(self, message):
        message = "<%s> %s" % (self.name, message)
        self.broadcastMessage(colored.magenta(message))
+       self.updateSessionInfo(message)
 
     def broadcastMessage(self, message):
        for name, protocol in self.factory.users.iteritems():
            if protocol != self:
                protocol.sendLine(colored.white(message))
+               self.updateSessionInfo(message)
 
+    def updateSessionInfo(self, message):
+        print(chr(27) + "[2J")
+        print('Users in chat: %s ' % (", ".join(self.factory.users)))
+        print('Latest message: %s ' % (message))
 
 class ChatFactory(Factory):
     def __init__(self):
@@ -64,7 +76,9 @@ class ChatFactory(Factory):
     def buildProtocol(self, addr):
         return ChatProtocol(self)
 
-reactor.listenTCP(8000, ChatFactory())
+reactor.listenTCP(port, ChatFactory())
+print("Chat Server started on port %s" % (port,))
 reactor.run()
+
 
 
