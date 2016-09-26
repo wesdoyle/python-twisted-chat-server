@@ -38,20 +38,25 @@ class ChatProtocol(LineReceiver):
 
     def handle_REGISTER(self, name):
        if name in self.factory.users:
-           self.sendLine("Sorry, that name is taken. Choose a different name.")
+           self.sendLine("Sorry, %r is taken. Try something else." % name)
            return
        
        welcomeMsg = ('Welcome to the chat, %s.' % (name,))
-       otherUsers = ('Participants in chat: %s ' % (", ".join(self.factory.users)))
+
        joinedMsg = colored.green('%s has joined the chanel.' % (name,))
-       
        self.sendLine(welcomeMsg)
        self.broadcastMessage(joinedMsg)
-       self.sendLine(otherUsers)
        self.name = name
        self.factory.users[name] = self
        self.state = "CHAT"
        self.updateSessionInfo(name + ' registered.')
+       
+       if len(self.factory.users) > 1:
+           self.sendLine('Participants in chat: %s ' % (", ".join(self.factory.users)))
+       else: 
+           self.sendLine("You're the only one here, %r" % name)
+
+
 
     def handle_CHAT(self, message):
        message = "<%s> %s" % (self.name, message)
