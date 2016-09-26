@@ -3,6 +3,7 @@ from twisted.protocols.basic import LineReceiver
 from twisted.internet import reactor
 from clint.textui import colored
 import sys
+import datetime
 
 port = 8000
 chatLog = [] 
@@ -13,14 +14,17 @@ class ChatProtocol(LineReceiver):
         self.name = None
         self.state = "REGISTER"
 
+    def getTime(self):
+        return '({:%Y/%m/%d %H:%M:%S})'.format(datetime.datetime.now())
+
     def connectionMade(self):
         banner = ("""
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         #### Successfully Connected to the Chat Server ####
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         """)
-        
         self.sendLine(banner)
+        self.sendLine(self.getTime())
         self.sendLine("Choose a username:")
 
     def connectionLost(self, reason):
@@ -58,9 +62,8 @@ class ChatProtocol(LineReceiver):
            self.sendLine("You're the only one here, %r" % name)
 
 
-
     def handle_CHAT(self, message):
-       message = "<%s> %s" % (self.name, message)
+       message = self.getTime() + "<%s> %s" % (self.name, message)
        self.broadcastMessage(colored.magenta(message))
        chatLog.append(message)
        self.updateSessionInfo()
