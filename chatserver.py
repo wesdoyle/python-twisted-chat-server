@@ -73,10 +73,13 @@ class ChatProtocol(LineReceiver):
 
     def updateSessionInfo(self):
         print(chr(27) + "[2J")
+        molding = "============================================"
+        print(molding)
         print('Users in chat: %s ' % (", ".join(self.factory.users)))
-
-        print("\n".join(chatLog[-20:]))
-       
+        print(molding)
+        global chatLog
+        chatLog = chatLog[-20:]
+        print("\n".join(chatLog))
 
 class ChatFactory(Factory):
     def __init__(self):
