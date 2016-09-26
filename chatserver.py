@@ -5,7 +5,7 @@ from clint.textui import colored
 import sys
 
 port = 8000
-
+chatLog = [] 
 
 class ChatProtocol(LineReceiver):
     def __init__(self, factory):
@@ -28,7 +28,8 @@ class ChatProtocol(LineReceiver):
         if self.name in self.factory.users:
             del self.factory.users[self.name]
             self.broadcastMessage(leftMsg)
-        self.updateSessionInfo(leftMsg)
+        chatLog.append(self.name + " exits.")
+        self.updateSessionInfo()
  
     def lineReceived(self, line):
         if self.state == "REGISTER":
@@ -49,7 +50,7 @@ class ChatProtocol(LineReceiver):
        self.name = name
        self.factory.users[name] = self
        self.state = "CHAT"
-       self.updateSessionInfo(name + ' registered.')
+       self.updateSessionInfo()
        
        if len(self.factory.users) > 1:
            self.sendLine('Participants in chat: %s ' % (", ".join(self.factory.users)))
@@ -61,20 +62,21 @@ class ChatProtocol(LineReceiver):
     def handle_CHAT(self, message):
        message = "<%s> %s" % (self.name, message)
        self.broadcastMessage(colored.magenta(message))
-       self.updateSessionInfo(message)
+       chatLog.append(message)
+       self.updateSessionInfo()
 
-    # change this to write out chat log for last 100 messages
-    # with timestamp, while refreshing the current users in chat
     def broadcastMessage(self, message):
        for name, protocol in self.factory.users.iteritems():
            if protocol != self:
                protocol.sendLine(colored.white(message))
-               self.updateSessionInfo(message)
+               self.updateSessionInfo()
 
-    def updateSessionInfo(self, message):
+    def updateSessionInfo(self):
         print(chr(27) + "[2J")
         print('Users in chat: %s ' % (", ".join(self.factory.users)))
-        print('Latest message: %s ' % (message))
+
+        print("\n".join(chatLog[-20:]))
+       
 
 class ChatFactory(Factory):
     def __init__(self):
